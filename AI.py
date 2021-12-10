@@ -25,14 +25,19 @@ def assignMoves(state: State) -> State:
 def movePiece(state: State) -> State:
     moveStr = state.move
     if moveStr[0] == 'm':
+        carry = moveStr[1]
+
+
         # movement ruleset
     elif moveStr[1] == 'n':
+        
         # New piece ruleset
         
     return state
 
 def validMove(state: State) -> bool:
     moveStr = state.move
+    # Check if new on valid square
     # Check if new on blank square
     # Check if move over wall
     # Check carry

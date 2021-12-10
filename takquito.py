@@ -1,4 +1,3 @@
-import pygame
 import sys
 sys.path.append(".")
 from AI import *
