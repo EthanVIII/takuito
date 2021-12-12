@@ -12,7 +12,15 @@
 
 "2" - Player 2 capstone
 
-"OOX" - Player 1 on the top.
+"OOX" - Player  on top
+
+## Notation for Turns
+
+1 - P1's turn
+2 - P2's turn
+0 - Draw Outcome
+-1 - P1's Outcome - P1 wins
+-2 - P2's Ouctome - P2 wins
 
 ## Notation for pieces
 
@@ -27,9 +35,14 @@ Each move is dictated as a series of characters in a string.
 If 1st char was "n"
 
 	- 2nd char -
-		- w - indicates a wall piece
-		- c - indicates a capstone
-		- p - indicates a normal piece
+
+"O" - Player 1 normal piece
+"X" - Player 2 normal piece
+"o" - Player 1 wall
+"x" - Player 2 wall
+"1" - Player 1 capstone
+"2" - Player 2 capstone
+
 
 	- 3rd and 4th char - 
 
