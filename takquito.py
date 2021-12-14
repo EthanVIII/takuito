@@ -1,11 +1,12 @@
 from AI import *
 from Board import *
 from debug import *
+import copy
+
 def main() -> None:
     state: State = State(1)
-    # gameloop(state)
-    debug2()
-
+    gameloop(state)
+    #gameloop(state)
     # gameloop(state, init(1000,700))
 # def init(width: int, height: int) -> pygame.Surface:
     # pygame.display.set_caption("Takquito")
@@ -14,10 +15,11 @@ def main() -> None:
 
 def gameloop(state: State) -> None:
     while state.turn > 0:
-        nextState: State = assignMoves(state)
-        state = incTurn(nextState)
+        state.move = assignMoves(copy.deepcopy(state))
+        state = movePiece(state)
         printState(state)
-        
+        state = incTurn(state)
+         
     printWinner(state)
          
     

@@ -2,6 +2,36 @@ from AI import *
 from Board import *
 
 
+def debug4() -> None:
+    state = State(1)
+    state.move = "n0a0"
+    state = movePiece(state)
+    state = incTurn(state)
+    printState(state)
+    state.move = "m0a0d"
+    state = movePiece(state)
+    state = incTurn(state)
+    printState(state)
+    state.move = "n0a0"
+    state = movePiece(state)
+    state = incTurn(state)
+    printState(state)
+
+
+def debug3() -> None:
+    state = State(1)
+    state.board =  [
+                "","","","","",
+                "","","","","",
+                "","","OO","","",
+                "","","","","",
+                "","","","","",
+                     ]
+    l = listMoves(state)
+    print(l)
+    print(len(l))
+
+
 
 
 def debug2() -> None:
