@@ -6,7 +6,7 @@ import copy
 def main() -> None:
     state: State = State(1)
     gameloop(state)
-    #gameloop(state)
+
     # gameloop(state, init(1000,700))
 # def init(width: int, height: int) -> pygame.Surface:
     # pygame.display.set_caption("Takquito")

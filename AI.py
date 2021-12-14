@@ -1,3 +1,4 @@
+import copy
 class State:
     # 1 - P1's turn, 2 - P2's turn, 0 - No longer playing.
     def __init__(self, turn: int) -> None:
@@ -32,6 +33,26 @@ def direction(x: int,y: int,direct: chr) -> (int,int):
             raise Exception("panic - weird Direction")
     return (0,0)
 
+def updatePieces(state: list[int] ,piece: chr) -> list[int]:
+    if piece == 'o' or piece == 'O':
+        state[0] = state[0] -1
+    elif piece == 'x' or piece == 'X':
+        state[2] = state[2] - 1
+    elif piece == '1':
+        state[1] = state[1] -1
+    elif piece == '2':
+        state[3] = state[3] -1
+    return state
+    
+
+def flatten(move: str, destination: str) -> str:
+    if len(move) == 1 and (move[0] == '1' or move[0] == '2'):
+        if len(destination) > 0:
+            if destination[0] == 'x':
+                destination = 'X' + destination[1:]
+            if destination[0] == 'o':
+                destination = 'O' + destination [1:]
+    return destination
 
 
 # TODO Move Piece and add piece counter
@@ -40,17 +61,19 @@ def movePiece(state: State) -> State:
     if moveStr[0] == 'n':
         piece: chr = moveStr[1]
         x,y = ord(moveStr[2])-97, int(moveStr[3])
-        if state.board[index(x,y)] != "": raise Exception("panic not emp: " + state.board[index(x,y)] + " " + str(x) + str(y))
+        if state.board[index(x,y)] != "": 
+            raise Exception("panic - brocken not empty")
         state.board[index(x,y)] = piece
+        state.pieces = updatePieces(state.pieces,piece)
         state.move = ""
         return state
     if moveStr[0] == 'm':
         carry: int = ord(moveStr[1])
         x,y = ord(moveStr[2])-97,int(moveStr[3])
         (newX,newY) = direction(x,y,moveStr[4])
-        # TODO Flatten Wall
         move: str = state.board[index(x,y)][:carry+1]
         state.board[index(x,y)] = state.board[index(x,y)][carry+1:]
+        state.board[index(newX,newY)] = flatten(move,state.board[index(newX,newY)])
         state.board[index(newX,newY)] = move + state.board[index(newX,newY)]
         moveMore: str = moveStr[5:]
         oldX,oldY = newX,newY
@@ -59,6 +82,7 @@ def movePiece(state: State) -> State:
             (moreX,moreY) = direction(oldX,oldY,moveMore[1])
             moreMove: str = state.board[index(oldX,oldY)][:carryMore+1]
             state.board[index(oldX,oldY)] = state.board[index(oldX,oldY)][carryMore+1:]
+            state.board[index(moreX,moreY)] = flatten(move,state.board[index(moreX,moreY)])
             state.board[index(moreX,moreY)] = moreMove + state.board[index(moreX,moreY)]
             moveMore = moveMore[2:]
             oldX,oldY = moreX,moreY
@@ -153,18 +177,49 @@ def incTurn(state: State) -> State:
         state.turn = winner   
     return state
 
-# TODO
+# TODO - Fix Greedy
 def p1(state: State) -> str:
     moves = listMoves(state)
-    return moves[0]
+    maxVal = -100
+    maxIndex = 0
+    index = 0
+    while index < len(moves):
+        newState = copy.deepcopy(state)
+        newState.move = moves[index]
+        print(moves[index])
+        newState = movePiece(newState)
+        val = heuristic(state.turn,newState)
+        if val > maxVal:
+            maxIndex = index
+        index = index +1
+    return moves[maxIndex]
 
 # TODO
 def p2(state: State) -> str:
     moves = listMoves(state)
     return moves[0]
 
+# Ratio Heuristic - absolutely loves winning and hates losing.
+def heuristic(turn: int, state: State) -> int:
+    (isDone,winner) = checkDone(state)
+    if turn == 1: mP,oP = 'O','X'
+    elif turn == 2: mP, oP = 'X','O' 
+    myScore, opScore = 0,0
+    if isDone:
+        if winner * -1 == turn:
+            return 100
+        elif winner == 0: 
+            return 0
+        else: return -100
+    for s in state.board:
+        if s[:1] == mP:
+            myScore = myScore + 1
+        elif s[:1] == oP:
+            opScore = opScore + 1
+    if opScore == 0:
+        return myScore
+    return myScore/opScore
 
-# Debug
 def listMoves(state: State) -> list[str]:
     turn: int = state.turn
     ret: list[str] = []
@@ -194,7 +249,7 @@ def listMoves(state: State) -> list[str]:
         x = 0
         y = y+1
     return ret
-# To Fix
+
 def moveTree(state: State, x: int, y: int, carry: int, pieces: list[str], additional: bool, current: str, previous) -> list[str]:
     if carry < 0:
         return [current]

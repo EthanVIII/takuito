@@ -1,6 +1,18 @@
 from AI import *
 from Board import *
 
+def debug5() -> None:
+    state = State(1)
+    state.board =  [
+                "","","","","",
+                "","","1","","",
+                "","","oXX","","",
+                "","","","","",
+                "","","","","",
+                     ]
+    state.move = "m0c1d"
+    state = movePiece(state)
+    printState(state)
 
 def debug4() -> None:
     state = State(1)
