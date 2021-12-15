@@ -4,14 +4,19 @@ from Board import *
 def debug5() -> None:
     state = State(1)
     state.board =  [
-                "","","","","",
-                "","","1","","",
-                "","","oXX","","",
-                "","","","","",
-                "","","","","",
+                "x","x","2","","X",
+                "o","o","","1","",
+                "","","oo","X","",
+                "o","o","","O","X",
+                "X","X","o","","oX",
                      ]
-    state.move = "m0c1d"
-    state = movePiece(state)
+
+    m = "m0c1d"
+    l = listMoves(state)
+    if m in l:
+        print("Yes")
+    else:
+        print("No")
     printState(state)
 
 def debug4() -> None:

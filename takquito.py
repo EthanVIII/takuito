@@ -6,7 +6,6 @@ import copy
 def main() -> None:
     state: State = State(1)
     gameloop(state)
-
     # gameloop(state, init(1000,700))
 # def init(width: int, height: int) -> pygame.Surface:
     # pygame.display.set_caption("Takquito")
@@ -15,11 +14,10 @@ def main() -> None:
 
 def gameloop(state: State) -> None:
     while state.turn > 0:
-        state.move = assignMoves(copy.deepcopy(state))
-        state = movePiece(state)
+        state = assignMoves(copy.deepcopy(state))
+        # state = movePiece(state)
         printState(state)
-        state = incTurn(state)
-         
+        state = incTurn(copy.deepcopy(state))
     printWinner(state)
          
     

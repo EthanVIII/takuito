@@ -1,4 +1,5 @@
 import copy
+from random import randrange
 class State:
     # 1 - P1's turn, 2 - P2's turn, 0 - No longer playing.
     def __init__(self, turn: int) -> None:
@@ -12,12 +13,12 @@ class State:
 def index(x:int,y:int) -> int:
     return x + y * 5
 
-def assignMoves(state: State) -> str:
+def assignMoves(state: State) -> State:
     if state.turn == 1:
-        move = p1(state)
+        state = p1(state)
     else:
-        move = p2(state)
-    return move
+        state = p2(state)
+    return state
 
 def direction(x: int,y: int,direct: chr) -> (int,int):
     match direct:
@@ -55,7 +56,6 @@ def flatten(move: str, destination: str) -> str:
     return destination
 
 
-# TODO Move Piece and add piece counter
 def movePiece(state: State) -> State:
     moveStr = state.move
     if moveStr[0] == 'n':
@@ -178,26 +178,84 @@ def incTurn(state: State) -> State:
     return state
 
 # TODO - Fix Greedy
-def p1(state: State) -> str:
-    moves = listMoves(state)
+def p1(state: State) -> State:
+    states = runPieces(state,copy.deepcopy(listMoves(state)))
+    index = 0
+    indexMax = 0
+    currentMax = -1000
+    print(len(states))
+    for s in states:
+        if minimax(s,3,True) > currentMax:
+            indexMax = index
+        index = index + 1
+        print("Check " + str(index))
+    return states[indexMax]
+# TODO
+def p2(state: State) -> State:
+    moves = listMoves(copy.deepcopy(state))
     maxVal = -100
     maxIndex = 0
     index = 0
     while index < len(moves):
-        newState = copy.deepcopy(state)
-        newState.move = moves[index]
-        print(moves[index])
-        newState = movePiece(newState)
-        val = heuristic(state.turn,newState)
-        if val > maxVal:
+        tempState = copy.deepcopy(state)
+        tempState.move = moves[index]
+        cVal = heuristic(state.turn,movePiece(tempState))
+        if cVal > maxVal:
+            maxVal = cVal
             maxIndex = index
-        index = index +1
-    return moves[maxIndex]
+        index = index + 1
+    
+    return movePiece(state,moves[maxIndex])
 
-# TODO
-def p2(state: State) -> str:
-    moves = listMoves(state)
-    return moves[0]
+def printState(state: State) -> None:
+    print("Turn: " + str(state.turn))
+    l: list[int] = [max(len(state.board[index(x,y)]) for y in range(0,5)) for x in range(0,5)]
+    for y in range(0,5): 
+        s: str = "|"
+        for x in range(0,5):
+            cell: str = state.board[index(x,y)]
+            s = s + cell + (" " * (l[x] - len(cell))) + "|"
+        print("-"*len(s))
+        print(s)
+    print("-"*len(s))
+
+
+
+def minimax(state: State, depth: int, isMax: bool) -> int:
+    if depth == 0 or state.turn <= 0:
+        printState(state)
+        return heuristic(state.turn,state)
+
+    states = runPieces(state,listMoves(state))
+    # states = list(dict.fromkeys(states))
+
+    if isMax:
+        maxEva = -1000
+        for s in states:
+            tree = minimax(s, depth-1,False)
+        maxEva = max(maxEva,tree)
+        if depth == 2:
+            print(maxEva)
+        return maxEva
+    else:
+        minEva = -1000
+        for s in states:
+            tree = minimax(s,depth-1,True)
+        minEva = min(minEva,tree)
+        return minEva
+
+
+def runPieces(oldState: State, moves: list[str]) -> list[State]:
+    retList = []
+    boards = []
+    for m in moves:
+        curState = copy.deepcopy(oldState)
+        curState.move = m
+        curState = movePiece(curState)
+        retList.append(curState)
+        boards.append(curState.board)
+        curState = incTurn(curState)
+    return retList
 
 # Ratio Heuristic - absolutely loves winning and hates losing.
 def heuristic(turn: int, state: State) -> int:
@@ -216,9 +274,7 @@ def heuristic(turn: int, state: State) -> int:
             myScore = myScore + 1
         elif s[:1] == oP:
             opScore = opScore + 1
-    if opScore == 0:
-        return myScore
-    return myScore/opScore
+    return myScore
 
 def listMoves(state: State) -> list[str]:
     turn: int = state.turn
@@ -244,7 +300,7 @@ def listMoves(state: State) -> list[str]:
                     carry: int = len(state.board[index(x,y)]) - 1
                 else:
                     carry: int = 4
-                ret = ret + moveTree(state , x, y, carry, subList,False,"", [carry])
+                ret = ret + moveTree(copy.deepcopy(state) , x, y, carry, subList,False,"", [carry])
             x = x+1
         x = 0
         y = y+1
@@ -269,7 +325,7 @@ def moveTree(state: State, x: int, y: int, carry: int, pieces: list[str], additi
             else:
                 current = move
             state2 = movePiece(state)
-            retList = retList + moveTree(state2, x,y-1, c-1,pieces,True,current, previous + [carry])
+            retList = retList + moveTree(copy.deepcopy(state2), x,y-1, c-1,pieces,True,current, previous + [carry])
         current = oldCurrent
         # move down
         if (y < 4) and not (board[index(x,y+1)][:1] in ['o','x','1','2']):
@@ -281,7 +337,7 @@ def moveTree(state: State, x: int, y: int, carry: int, pieces: list[str], additi
             else:
                 current = move
             state2 = movePiece(state)
-            retList = retList + moveTree(state2, x,y+1, c-1,pieces,True,current, previous + [carry])
+            retList = retList + moveTree(copy.deepcopy(state2), x,y+1, c-1,pieces,True,current, previous + [carry])
         current = oldCurrent
         # move left
         if (x > 0) and not (board[index(x-1,y)][:1] in ['o','x','1','2']):
@@ -292,7 +348,7 @@ def moveTree(state: State, x: int, y: int, carry: int, pieces: list[str], additi
             else:
                 current = move
             state2 = movePiece(state)
-            retList = retList + moveTree(state2, x-1,y, c-1,pieces,True,current, previous + [carry])
+            retList = retList + moveTree(copy.deepcopy(state2), x-1,y, c-1,pieces,True,current, previous + [carry])
         current = oldCurrent
         # move right
         if (x < 4) and not (board[index(x+1,y)][:1] in ['o','x','1','2']):
@@ -303,7 +359,7 @@ def moveTree(state: State, x: int, y: int, carry: int, pieces: list[str], additi
             else:
                 current = move
             state2= movePiece(state)
-            retList = retList + moveTree(state2, x+1,y, c-1,pieces,True,current, previous + [carry])
+            retList = retList + moveTree(copy.deepcopy(state2), x+1,y, c-1,pieces,True,current, previous + [carry])
         c = c-1
     return retList
 
